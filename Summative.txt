@@ -1,0 +1,287 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+
+namespace ConsoleApplication1
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            //string InputString = Console.ReadLine();
+            string Output = "";
+            string WChar = "¦";
+            string BChar = " ";
+
+            bool TimeDot = true;
+            bool FillUp = true;
+
+            int Version = 1;
+
+            int ix = 0;
+            int iy = 0;
+
+            int QRCodeX = ((Version * 4) + 17) + 2;
+            int QRCodeY = ((Version * 4) + 17) + 2;
+
+            int LargeLocatorX = 9;
+            int LargeLocatorY = 9;
+
+            int SmallLocatorX = 5;
+            int SmallLocatorY = 5;
+
+            int FormatInfo = 15;
+            
+            // Array(s)
+            string[,] QRCode = new string[QRCodeX, QRCodeY];
+            string[,] LargeLocator = new string[LargeLocatorX, LargeLocatorY];
+            string[,] SmallLocator = new string[SmallLocatorX, SmallLocatorY];
+            string[] FormatInformation = new string[FormatInfo];
+            
+            //Setup the Format Array
+            for (ix = 0; ix < FormatInfo; ix++) {
+                if (ix == 1 || ix == 2 || ix == 4 || ix == 5 || ix == 6 || ix == 8 || ix == 11 || ix == 13 || ix == 14) FormatInformation[ix] = BChar;
+                else FormatInformation[ix] = WChar;
+            }
+
+            //Setup the Large Locator(s) Array
+            for (ix = 0; ix < LargeLocatorX; ix++) {
+                for (iy = 0; iy < LargeLocatorY; iy++) {
+                    if (ix == 0 || iy == 0 || ix == (LargeLocatorX - 1) || iy == (LargeLocatorY - 1) ||
+                        ix == 2 && iy >= 2 && iy <= 6 || ix == 6 && iy >= 2 && iy <= 6 ||
+                        iy == 2 && ix >= 2 && ix <= 6 || iy == 6 && ix >= 2 && ix <= 6) {
+                            LargeLocator[ix, iy] = WChar;
+                    }
+                    else {
+                        LargeLocator[ix, iy] = BChar;
+                    }
+                }
+            }
+
+            /*//Draw Large Locator Result
+            for (ix = 0; ix < LargeLocatorX; ix++) {
+                for (iy = 0; iy < LargeLocatorY; iy++) {
+                    Output = Output + LargeLocator[ix, iy];
+                }
+                Console.WriteLine(Output);
+                Output = "";
+            }
+            */
+
+            //Setup the Small Locator(s) Array
+            for (ix = 0; ix < SmallLocatorX; ix++) {
+                for (iy = 0; iy < SmallLocatorY; iy++) {
+                    if (ix == 1 && iy >= 1 && iy <= 3 || ix == 3 && iy >= 1 && iy <= 3 ||
+                        iy == 1 && ix >= 1 && ix <= 3 || iy == 3 && ix >= 1 && ix <= 3) {
+                        SmallLocator[ix, iy] = WChar;
+                    }
+                    else {
+                        SmallLocator[ix, iy] = BChar;
+                    }
+                }
+            }
+
+            /*//Draw Small Locator Result
+            for (ix = 0; ix < SmallLocatorX; ix++) {
+                for (iy = 0; iy < SmallLocatorY; iy++) {
+                    Output = Output + SmallLocator[ix, iy];
+                }
+                Console.WriteLine(Output);
+                Output = "";
+            }
+            */
+
+            //Setup the Bounds Addition [ Outside Area ]
+            for (ix = 0; ix < QRCodeX; ix++) {
+                for (iy = 0; iy < QRCodeY; iy++) {
+                    if (ix == 0 || iy == 0 || ix == (QRCodeX - 1) || iy == (QRCodeY - 1)) {
+                        QRCode[ix, iy] = WChar;
+                    }
+                }
+            }
+
+            //The 3 Corner Locators Addition
+            for (ix = 0; ix < LargeLocatorX; ix++) {
+                for (iy = 0; iy < LargeLocatorY; iy++) {
+                    //First Top Left Locator
+                    QRCode[ix, iy] = LargeLocator[ix, iy];
+                    //Second Top Right Locator
+                    QRCode[ix, (iy + (QRCodeY - LargeLocatorY))] = LargeLocator[ix, iy];
+                    //Third Bottom Left Locator
+                    QRCode[(ix + (QRCodeX - LargeLocatorX)), iy] = LargeLocator[ix, iy];
+                }
+            }
+
+            //The Timing Strips Addition
+            for (ix = 0; ix < QRCodeX; ix++) {
+                for (iy = 0; iy < QRCodeY; iy++) {
+                    if (ix == 7 && iy >= LargeLocatorY && iy <= (QRCodeY - LargeLocatorY) || iy == 7 && ix >= LargeLocatorX && ix <= (QRCodeX - LargeLocatorX)) {
+                        if (QRCode[ix, iy] == null) {
+                            if (TimeDot) QRCode[ix, iy] = BChar;
+                            else QRCode[ix, iy] = WChar;
+                        }
+                    }
+                    TimeDot = !TimeDot;
+                }
+            }
+
+            //Small Locators Addition
+
+            //Dark Module
+                QRCode[(4 * Version) + 10, 9] = BChar;
+
+            //Formating / Error Information Addition
+            int Format1 = 0;
+            int Format2 = 0;
+            int Format3 = 0;
+            int Format4 = 0;
+
+            for (ix = 0; ix < FormatInfo; ix++)
+            {
+                //Top Left, Right Format info [0-7]
+                if (QRCode[ix + 1, LargeLocatorY] == null && ix <= ((FormatInformation.Length / 2) + 1)) {
+                    QRCode[ix + 1, LargeLocatorY] = FormatInformation[Format1];
+                    Format1++;
+                }
+                //Bottom Left, Right Format info [8-14]
+                if (QRCode[QRCodeX - (ix + 2), LargeLocatorY] == null && ix <= ((FormatInformation.Length / 2) - 1)) {
+                    QRCode[QRCodeX - (ix + 2), LargeLocatorY] = FormatInformation[(FormatInfo - (Format2 + 1))];
+                    Format2++;
+                }
+                //Top Right, Bottom Format info [7-0]
+                if (QRCode[LargeLocatorX, QRCodeX - (ix + 2)] == null && ix <= ((FormatInformation.Length / 2) + 1)) {
+                    QRCode[LargeLocatorX, QRCodeX - (ix + 2)] = FormatInformation[Format3];
+                    Format3++;
+                }
+                //Top Left, Bottom Format info [14-8]
+                if (QRCode[LargeLocatorX, ix + 1] == null && ix <= ((FormatInformation.Length / 2) + 1)) {
+                    QRCode[LargeLocatorX, ix + 1] = FormatInformation[(FormatInfo - (Format4 + 1))];
+                    Format4++;
+                }
+            }
+
+            //Output the Results to the Console
+            for (ix = 0; ix < QRCodeX; ix++) {
+                for (iy = 0; iy < QRCodeY; iy++) {
+                    Output = Output + QRCode[ix, iy];
+                }
+                Console.WriteLine(Output);
+                Output = "";
+            }
+
+            //Pair Placement
+            int Bytes = 0;
+
+            //Output the "Results" to the Console
+            for (ix = 0; ix < QRCodeX; ix++) {
+                for (iy = 0; iy < QRCodeY; iy++) {
+                    if (QRCode[ix, iy] == null) {
+                        //Shape Picture?
+                        //QRCode[ix, iy] = BChar;
+                        Bytes++;
+                    }
+                    Output = Output + QRCode[ix, iy];
+                }
+                Console.WriteLine(Output);
+                Output = "";
+            }
+            Console.WriteLine("Bytes Available : " + Bytes);
+
+            //# of Message Data Space Available Before Adding Message Info
+            string[] MessageInformation = new string[Bytes];
+
+            //Test Data For Algorithm
+            for (ix = 0; ix < FormatInfo; ix++) {
+                if (ix == 0 || ix == 2 || ix == 5 || ix == 6 || ix == 8 || ix == 9 || ix == 12 || ix == 16 || ix == 17 || ix == 23 || ix == 24 || ix == 26 || ix == 30 || ix == 31 || ix == 34 || ix == 36 || ix == 39 || ix == 40) MessageInformation[ix] = WChar;
+                else MessageInformation[ix] = BChar;
+            }
+
+            //Write Message Algorithm
+            int iBytes = 0;
+            int i = 0;
+
+            //For Every Byte in Message
+            for (ix = 0; ix < ((QRCodeX - 2) / 2); ix++) {
+                for (iy = 0; iy < ((QRCodeY - 2) / 2); iy++) {
+                    //for (i = 0; iBytes <= Bytes; i++) {
+                        if (FillUp) {
+                            if ((iy + 2) >= (QRCodeY))
+                                FillUp = false;
+                            else {
+                                if (QRCode[QRCodeX - (iy + 2), QRCodeY - ((ix) + 2)] == null) {
+                                    QRCode[QRCodeX - (iy + 2), QRCodeY - ((ix) + 2)] = MessageInformation[iBytes];
+                                    iBytes++;
+                                }
+                                if (QRCode[QRCodeX - (iy + 2), QRCodeY - ((ix + 1) + 2)] == null) {
+                                    QRCode[QRCodeX - (iy + 2), QRCodeY - ((ix + 1) + 2)] = MessageInformation[iBytes];
+                                    iBytes++;
+                                }
+                            }
+                        }
+                        else if (!FillUp) {
+							if ((iy + 2) >= (QRCodeY))
+                                FillUp = false;
+                            else {
+                                if (QRCode[(iy + 2), ((ix) + 2)] == null) {
+                                    QRCode[(iy + 2), ((ix) + 2)] = MessageInformation[iBytes];
+                                    iBytes++;
+                                }
+                                if (QRCode[(iy + 2), ((ix + 1) + 2)] == null) {
+                                    QRCode[(iy + 2), ((ix + 1) + 2)] = MessageInformation[iBytes];
+                                    iBytes++;
+                                }
+                            }
+                            //iBytes = iBytes + 2;
+                        }
+                    //}
+                }
+            }
+
+            //
+            Bytes = 0;
+
+            //Output the End Results to the Console
+            for (ix = 0; ix < QRCodeX; ix++) {
+                for (iy = 0; iy < QRCodeY; iy++) {
+                    if (QRCode[ix, iy] == null) {
+                        QRCode[ix, iy] = BChar;
+                        Bytes++;
+                    }
+                    Output = Output + QRCode[ix, iy];
+                }
+                Console.WriteLine(Output);
+                Output = "";
+            }
+            Console.WriteLine("Bytes Available : " + Bytes);
+
+            /*
+            Console.WriteLine("¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦");
+            Console.WriteLine("¦       ¦ ¦¦¦ ¦       ¦");
+            Console.WriteLine("¦ ¦¦¦¦¦ ¦  ¦ ¦¦ ¦¦¦¦¦ ¦");
+            Console.WriteLine("¦ ¦   ¦ ¦     ¦ ¦   ¦ ¦");
+            Console.WriteLine("¦ ¦   ¦ ¦ ¦ ¦ ¦ ¦   ¦ ¦");
+            Console.WriteLine("¦ ¦   ¦ ¦¦    ¦ ¦   ¦ ¦");
+            Console.WriteLine("¦ ¦¦¦¦¦ ¦ ¦ ¦ ¦ ¦¦¦¦¦ ¦");
+            Console.WriteLine("¦       ¦ ¦ ¦ ¦       ¦");
+            Console.WriteLine("¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦");
+            Console.WriteLine("¦  ¦¦   ¦¦¦¦¦ ¦¦ ¦    ¦");
+            Console.WriteLine("¦¦     ¦  ¦ ¦   ¦¦ ¦ ¦¦");
+            Console.WriteLine("¦¦¦ ¦¦¦ ¦ ¦    ¦¦¦¦  ¦¦");
+            Console.WriteLine("¦  ¦ ¦ ¦ ¦¦   ¦¦ ¦¦¦¦ ¦");
+            Console.WriteLine("¦   ¦        ¦¦    ¦¦¦¦");
+            Console.WriteLine("¦¦¦¦¦¦¦¦¦ ¦¦  ¦¦ ¦¦  ¦¦");
+            Console.WriteLine("¦       ¦¦¦¦ ¦¦    ¦ ¦¦");
+            Console.WriteLine("¦ ¦¦¦¦¦ ¦  ¦¦¦  ¦ ¦¦¦¦¦");
+            Console.WriteLine("¦ ¦   ¦ ¦ ¦¦¦   ¦¦¦¦¦ ¦");
+            Console.WriteLine("¦ ¦   ¦ ¦¦¦ ¦   ¦¦    ¦");
+            Console.WriteLine("¦ ¦   ¦ ¦¦ ¦¦  ¦¦¦¦¦¦¦¦");
+            Console.WriteLine("¦ ¦¦¦¦¦ ¦ ¦¦  ¦¦ ¦ ¦¦¦¦");
+            Console.WriteLine("¦       ¦    ¦¦   ¦ ¦ ¦");
+            Console.WriteLine("¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦");
+            */
+
+            Console.ReadLine();
+        }
+    }
+}
